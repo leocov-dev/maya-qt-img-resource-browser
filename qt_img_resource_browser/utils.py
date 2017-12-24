@@ -1,21 +1,21 @@
+"""
+utilities module for generic UI actions
+"""
 from vendor.Qt import QtCore, QtWidgets, QtGui
 
-try:
-    from PySide2 import QtCore, QtWidgets, QtGui
-except:
-    pass
 
 def progress_bar(msg, num_items, cancelable=False, size=None, font=None, center=True, parent=None):
     """
     a progress bar macro to make a quick progress bar window
-    :param msg:
-    :param num_items:
-    :param cancelable:
-    :param size:
-    :param font:
-    :param center:
-    :param parent:
-    :return:
+
+    Args:
+        msg (str): the string to display above the progress bar
+        num_items (int): the total number of items we are counting
+        cancelable (bool): if True, will show a button and allow the progress bar to be canceled
+        size (QtCore.QSize): set a custom size for the window
+        font (QtGui.QFont): set a custom font for the message text
+        center (bool): if True, the window will center on the monitor the mouse pointer is currently on
+        parent (QtWidgets.QWidget): you can specify a parent, but it is not required for this kind of window
     """
     if not size:
         size = QtCore.QSize(400, 100)
@@ -32,7 +32,6 @@ def progress_bar(msg, num_items, cancelable=False, size=None, font=None, center=
     progress.setFont(font)
     progress.setFixedSize(size)
     progress.setMinimumDuration(1000)
-    progress.forceShow()
     if center:
         center_widget(progress)
 
@@ -42,8 +41,9 @@ def progress_bar(msg, num_items, cancelable=False, size=None, font=None, center=
 def center_widget(widget):
     """
     move the given widget to the center of the screen with the mouse pointer currently inside it
-    :param widget:
-    :return:
+
+    Args:
+        widget (QtWidgets.QWidget): the widget we want to center
     """
     # get the dimensions of the widget
     offset_rect = widget.rect()

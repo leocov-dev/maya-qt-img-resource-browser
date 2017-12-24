@@ -1,0 +1,7 @@
+{
+    "path_exclusions": [
+        ":/characterizationtool",
+        ":/webkit",
+        ":/qt-project.org"
+    ]
+}
