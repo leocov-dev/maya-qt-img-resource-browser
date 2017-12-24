@@ -27,7 +27,7 @@ I've tested this tool with Maya 2016 and Maya 2018. It uses the Qt.py shim to en
 By Default some paths are excluded from the list. You can edit the ``config.json`` file to modify these exclusions.
     
 ## Screenshot
-![Window Screenshot](https://github.com/leocov-dev/maya-qt-img-resource-browser/tree/master/qt_img_resource_browser/screenshots/capture_01.png)
+![Window Screenshot](https://raw.githubusercontent.com/leocov-dev/maya-qt-img-resource-browser/master/qt_img_resource_browser/screenshots/capture_01.png?s=250)
 
 ## Known Issues
 
