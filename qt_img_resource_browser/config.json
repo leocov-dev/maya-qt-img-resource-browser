@@ -2,6 +2,11 @@
     "path_exclusions": [
         ":/characterizationtool",
         ":/webkit",
-        ":/qt-project.org"
+        ":/qt-project.org",
+        ":/trolltech"
+    ],
+    "valid_ext": [
+        ".png",
+        ".svg"
     ]
 }

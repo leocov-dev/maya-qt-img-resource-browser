@@ -4,6 +4,16 @@ utilities module for generic UI actions
 from vendor.Qt import QtCore, QtWidgets, QtGui
 
 
+def make_shelf_icon(icon_path, command_str):
+    """
+    make an icon on the current shelf
+    Args:
+        icon_path:
+        command_str:
+    """
+    pass
+
+
 def progress_bar(msg, num_items, cancelable=False, size=None, font=None, center=True, parent=None):
     """
     a progress bar macro to make a quick progress bar window

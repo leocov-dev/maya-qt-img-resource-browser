@@ -27,8 +27,9 @@ This tool uses the [Qt.py](https://github.com/mottosso/Qt.py) shim to enable com
 import qt_img_resource_browser.interface as interface
 interface.load()
 ```
-    
-By Default some paths are excluded from the list. You can edit the ``config.json`` file to modify these exclusions.
+
+#### Notes    
+By default some paths are excluded from the list. You can edit the ``config.json`` file to modify these exclusions.
     
 ## Screenshot
 ![Window Screenshot](https://raw.githubusercontent.com/leocov-dev/maya-qt-img-resource-browser/master/qt_img_resource_browser/screenshots/capture_01.png)

@@ -15,6 +15,8 @@ from vendor.Qt import QtCore, QtWidgets, QtGui
 from app import QtImgResourceData
 from utils import progress_bar
 
+from PySide2 import QtCore, QtWidgets, QtGui
+
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.CRITICAL)
@@ -62,6 +64,7 @@ class QtImgResourceBrowserInterface(MayaQWidgetBaseMixin, QtWidgets.QWidget):
         self.setContentsMargins(5, 5, 5, 5)
         self.setLayout(self.layout)
         self.scroll = ResourceBrowserList(self.data_list, parent=self)
+        self.scroll.return_count.connect(self.set_custom_title)
 
         # A filtering bar
         filter_bar_height = 28
@@ -76,7 +79,7 @@ class QtImgResourceBrowserInterface(MayaQWidgetBaseMixin, QtWidgets.QWidget):
 
         self.le_filter = QtWidgets.QLineEdit(parent=self)
         self.le_filter.setFixedHeight(filter_bar_height)
-        self.le_filter.editingFinished.connect(partial(self.scroll.filter_widgets, self.le_filter.text()))
+        self.le_filter.editingFinished.connect(self.update_filtering)
         self.lyt_filter.addWidget(self.le_filter)
 
         self.btn_filter_clear = QtWidgets.QPushButton("Clear", self)
@@ -91,6 +94,21 @@ class QtImgResourceBrowserInterface(MayaQWidgetBaseMixin, QtWidgets.QWidget):
 
         # Restore window's previous geometry
         self.restoreGeometry(self.win_settings.value("windowGeometry"))
+
+    def update_filtering(self):
+        """
+        update the list's filtering
+        """
+        self.scroll.filter_widgets(self.le_filter.text())
+        self.scroll.setFocus()
+
+    def set_custom_title(self, num):
+        """
+        set a window title with the number of items in the list
+        Args:
+            num (int): number of items in the list
+        """
+        self.setWindowTitle("Qt Image Resource Browser - {}".format(num))
 
     def closeEvent(self, event):
         """
@@ -134,6 +152,8 @@ class ResourceBrowserItem(QtWidgets.QWidget):
 
     max_height = 64
 
+    copy_text = QtCore.Signal(str)
+
     def __init__(self, img_path, img_name, img_ext, addl_sizes, parent=None):
         super(ResourceBrowserItem, self).__init__(parent=parent)
 
@@ -164,16 +184,17 @@ class ResourceBrowserItem(QtWidgets.QWidget):
         px_checker = QtGui.QPixmap(os.path.join(icon_path, "checker.png"), parent=self)
 
         # preview pixmap
-        px_preview = QtGui.QPixmap(self.img_path, parent=self)
+        self.px_image = QtGui.QPixmap(self.img_path, parent=self)
 
         # image's natural size
-        self.img_size = px_preview.size()
+        self.img_size = self.px_image.size()
 
+        px_preview = self.px_image
         # scale to fit in widget
-        if px_preview.height() > self.max_height:
-            px_preview = px_preview.scaledToHeight(self.max_height, QtCore.Qt.SmoothTransformation)
-        if px_preview.width() > self.max_height:
-            px_preview = px_preview.scaledToWidth(self.max_height, QtCore.Qt.SmoothTransformation)
+        if self.px_image.height() > self.max_height:
+            px_preview = self.px_image.scaledToHeight(self.max_height, QtCore.Qt.SmoothTransformation)
+        if self.px_image.width() > self.max_height:
+            px_preview = self.px_image.scaledToWidth(self.max_height, QtCore.Qt.SmoothTransformation)
 
         # combine pixmaps with a painter
         painter = QtGui.QPainter()
@@ -190,7 +211,7 @@ class ResourceBrowserItem(QtWidgets.QWidget):
 
         # ops layout
         self.ly_ops = QtWidgets.QVBoxLayout(self)
-        self.ly_ops.setContentsMargins(0, 5, 5, 5)
+        self.ly_ops.setContentsMargins(0, 8, 5, 15)
         self.layout.addLayout(self.ly_ops)
 
         # informational text
@@ -200,7 +221,7 @@ class ResourceBrowserItem(QtWidgets.QWidget):
 
         # name label
         name_font = QtGui.QFont()
-        name_font.setPointSize(7)
+        name_font.setPointSize(8)
         name_font.setBold(True)
         self.lbl_name = QtWidgets.QLabel(self.img_name, parent=self)
         self.lbl_name.setFont(name_font)
@@ -214,7 +235,7 @@ class ResourceBrowserItem(QtWidgets.QWidget):
         self.ly_info.addWidget(self.lbl_ext)
 
         # size label
-        self.lbl_size = QtWidgets.QLabel("w: {} h: {} ".format(self.img_size.width(), self.img_size.height()),
+        self.lbl_size = QtWidgets.QLabel("w: {} h: {}".format(self.img_size.width(), self.img_size.height()),
                                          parent=self)
         self.ly_info.addWidget(self.lbl_size)
 
@@ -224,9 +245,28 @@ class ResourceBrowserItem(QtWidgets.QWidget):
         self.ly_ops.addLayout(self.ly_clip)
 
         # clip-able path text
-        self.le_string = QtWidgets.QLineEdit(self.img_path, parent=self)
+        self.le_string = QtWidgets.QLineEdit('"{}"'.format(self.img_path), parent=self)
+        self.le_string.setFixedHeight(25)
         self.le_string.setReadOnly(True)
         self.ly_clip.addWidget(self.le_string)
+
+        # copy to clipboard
+        px_copy = QtGui.QPixmap(":/skinWeightCopy.png", parent=self)
+        self.btn_clip = QtWidgets.QPushButton(parent=self)
+        self.btn_clip.setFixedSize(QtCore.QSize(23, 23))
+        self.btn_clip.setIcon(px_copy)
+        self.btn_clip.setIconSize(QtCore.QSize(20, 20))
+        self.btn_clip.clicked.connect(self.emit_path)
+        self.ly_clip.addWidget(self.btn_clip)
+
+        # save icon
+        px_save = QtGui.QPixmap(":/fileSave.png", parent=self)
+        self.btn_save = QtWidgets.QPushButton(parent=self)
+        self.btn_save.setFixedSize(QtCore.QSize(23, 23))
+        self.btn_save.setIcon(px_save)
+        self.btn_save.setIconSize(QtCore.QSize(20, 20))
+        self.btn_save.clicked.connect(self.save_image)
+        self.ly_clip.addWidget(self.btn_save)
 
         # additional sizes dropdown
         # todo: is this useful? or should these alt sizes be used only for dpi changes?
@@ -236,6 +276,18 @@ class ResourceBrowserItem(QtWidgets.QWidget):
         #     self.cb_size.addItems(sorted(self.addl_sizes))
         #     self.ly_clip.addWidget(self.cb_size)
 
+    def emit_path(self):
+        """
+        emit path string
+        """
+        self.copy_text.emit(self.le_string.text())
+
+    def save_image(self):
+        """
+        save the image
+        """
+        self.px_image.save()
+
 
 class ResourceBrowserList(QtWidgets.QScrollArea):
     """
@@ -244,6 +296,9 @@ class ResourceBrowserList(QtWidgets.QScrollArea):
         data_list (list): a list of image resource tuples, a name and a dictionary of data
         parent (QtWidgets.QWidget): the parent for this object, it is not required but should always have one
     """
+
+    return_count = QtCore.Signal(int)
+    clipboard = QtWidgets.QApplication.clipboard()
 
     def __init__(self, data_list, parent=None):
         super(ResourceBrowserList, self).__init__(parent=parent)
@@ -282,6 +337,14 @@ class ResourceBrowserList(QtWidgets.QScrollArea):
         # initialize the widgets
         self.initialize_widget_list()
 
+    def copy_to_clipboard(self, string):
+        """
+        copy the string to the system clipboard
+        Args:
+            string: a string
+        """
+        self.clipboard.setText(string)
+
     def filter_widgets(self, filter_string):
         """
         filter the list of displayed widgets who's names contain the given ``filter_string``.
@@ -289,16 +352,19 @@ class ResourceBrowserList(QtWidgets.QScrollArea):
         Args:
             filter_string (str): search image names for this string
         """
+        log.debug("filter_string: {}".format(filter_string))
 
         self.filtered_widget_list = []
 
         for item in self.widget_list:
             if filter_string and filter_string.lower() not in item.img_name.lower():
-                item.hide()
+                item.setVisible(False)
                 continue
 
             self.filtered_widget_list.append(item)
-            item.show()
+            item.setVisible(True)
+
+        self.return_count.emit(len(self.filtered_widget_list))
 
         self.update_container_size()
 
@@ -312,6 +378,7 @@ class ResourceBrowserList(QtWidgets.QScrollArea):
             addl_sizes (list[str]): a list of additional size suffixes
         """
         item_widget = ResourceBrowserItem(img_path, img_name, img_ext, addl_sizes, parent=self)
+        item_widget.copy_text.connect(self.copy_to_clipboard)
         self.layout.addWidget(item_widget)
         self.widget_list.append(item_widget)
 
@@ -368,6 +435,8 @@ class ResourceBrowserList(QtWidgets.QScrollArea):
                 item.close()
             except:
                 pass
+
+        event.accept()
 
 
 def load():

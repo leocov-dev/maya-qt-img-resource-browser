@@ -4,6 +4,7 @@ building a data representation
 """
 import os
 import re
+import json
 import logging
 from collections import defaultdict
 from vendor.Qt import QtCore
@@ -26,11 +27,16 @@ class QtImgResourceData(object):
     Attributes:
         data_dict (dict): this dictionary holds the information about the image resources
 
+    Class Attributes:
+        config_json (str): string path to the configuration json file
+
     Examples:
         data = QtImgResourceData()
         data.build_img_dict()
         data_list =
     """
+
+    config_json = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
 
     def __init__(self):
         self.data_dict = defaultdict(lambda: {"img_path": "",
@@ -38,8 +44,17 @@ class QtImgResourceData(object):
                                               "img_ext": "",
                                               "addl_sizes": []})
 
-    @staticmethod
-    def _generator_find_images(valid_ext_list=None):
+        self.config = {"path_exclusions": [],
+                       "valid_ext": [
+                            ".png",
+                            ".svg"]}
+        if os.path.exists(self.config_json):
+            with open(self.config_json) as config_data:
+                self.config = json.load(config_data)
+        else:
+            log.critical("Could not load the config.json file!")
+
+    def _generator_find_images(self, valid_ext_list=None):
         """
         Iterate over the ":" path, in Qt this is the loaded resources path
         when an item is found that matches the ``valid_ext_list`` it is yielded
@@ -49,13 +64,13 @@ class QtImgResourceData(object):
 
         Args:
             valid_ext_list (list[str]): a list of valid extension strings, must start with a "." as in ".png".
-            this is an optional argument, if no list is provided, the default list is [".png", ".svg"]
+            this is an optional argument, if no list is provided, the default list is loaded from the configuration file
 
         Yields:
             str: the next found path string
         """
         if not valid_ext_list:
-            valid_ext_list = [".png", ".svg"]
+            valid_ext_list = self.config["valid_ext"]
 
         if not isinstance(valid_ext_list, list):
             raise ValueError("You must provide a list of valid extensions")
@@ -66,6 +81,10 @@ class QtImgResourceData(object):
         it = QtCore.QDirIterator(":", QtCore.QDirIterator.Subdirectories)
         while it.hasNext():
             next_item = it.next()
+
+            if any(next_item.startswith(x) for x in self.config["path_exclusions"]):
+                continue
+
             if any(next_item.endswith(ext) for ext in valid_ext_list):
                 yield next_item
 
