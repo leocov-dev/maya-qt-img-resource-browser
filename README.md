@@ -37,6 +37,7 @@ interface.load()
 
 * Add a shortcut to the shelf from the "Utils" main menu.
 * Open the Github page from the "Help" main menu.
+* The number of images in the list is displayed in the title bar.
 
 ##### Details
 
