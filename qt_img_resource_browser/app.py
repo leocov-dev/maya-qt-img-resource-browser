@@ -159,4 +159,4 @@ class QtImgResourceData(object):
         if not sort_key:
             raise RuntimeError("How did we even get here!")
 
-        return sorted(self.data_dict.items(), key=lambda (x, y): y[sort_key])
+        return sorted(self.data_dict.items(), key=lambda (x, y): y[sort_key].lower())

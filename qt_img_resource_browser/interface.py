@@ -9,13 +9,18 @@ Examples:
 """
 import os
 import logging
+import webbrowser
 from functools import partial
 from maya.app.general.mayaMixin import MayaQWidgetBaseMixin
 from vendor.Qt import QtCore, QtWidgets, QtGui
 from app import QtImgResourceData
-from utils import progress_bar
+from utils import progress_bar, make_shelf_icon
 
-from PySide2 import QtCore, QtWidgets, QtGui
+
+try:
+    from PySide2 import QtWidgets, QtGui
+except:
+    pass
 
 
 log = logging.getLogger(__name__)
@@ -40,6 +45,7 @@ class QtImgResourceBrowserInterface(MayaQWidgetBaseMixin, QtWidgets.QWidget):
         self.setMinimumHeight(400)
         self.setFixedWidth(500)
         self.setWindowTitle("Qt Image Resource Browser")
+        self.setWindowIcon(QtGui.QIcon(os.path.join(icon_path, "window_icon.png")))
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
         # ini file to store window settings
@@ -59,10 +65,34 @@ class QtImgResourceBrowserInterface(MayaQWidgetBaseMixin, QtWidgets.QWidget):
         self.btn_font.setBold(True)
         self.btn_font.setPointSize(9)
 
-        # UI items
+        # main layout
         self.layout = QtWidgets.QVBoxLayout(self)
-        self.setContentsMargins(5, 5, 5, 5)
+        self.layout.setContentsMargins(5, 5, 5, 5)
         self.setLayout(self.layout)
+
+        # main menu
+        self.menu_bar = QtWidgets.QMenuBar(self)
+        self.layout.addWidget(self.menu_bar)
+
+        # utils menu
+        self.utils_menu = QtWidgets.QMenu("Utils", self.menu_bar)
+        self.menu_bar.addMenu(self.utils_menu)
+
+        self.add_shelf_icon = QtWidgets.QAction("Add Shelf Icon",
+                                                self.utils_menu,
+                                                triggered=self.add_shelf_icon)
+        self.utils_menu.addAction(self.add_shelf_icon)
+
+        # help menu
+        self.help_menu = QtWidgets.QMenu("Help", self.menu_bar)
+        self.menu_bar.addMenu(self.help_menu)
+
+        self.add_shelf_icon = QtWidgets.QAction("Help / Info",
+                                                self.help_menu,
+                                                triggered=self.get_help)
+        self.help_menu.addAction(self.add_shelf_icon)
+
+        # UI items
         self.scroll = ResourceBrowserList(self.data_list, parent=self)
         self.scroll.return_count.connect(self.set_custom_title)
 
@@ -79,7 +109,7 @@ class QtImgResourceBrowserInterface(MayaQWidgetBaseMixin, QtWidgets.QWidget):
 
         self.le_filter = QtWidgets.QLineEdit(parent=self)
         self.le_filter.setFixedHeight(filter_bar_height)
-        self.le_filter.editingFinished.connect(self.update_filtering)
+        self.le_filter.textChanged.connect(self.update_filtering)
         self.lyt_filter.addWidget(self.le_filter)
 
         self.btn_filter_clear = QtWidgets.QPushButton("Clear", self)
@@ -95,12 +125,28 @@ class QtImgResourceBrowserInterface(MayaQWidgetBaseMixin, QtWidgets.QWidget):
         # Restore window's previous geometry
         self.restoreGeometry(self.win_settings.value("windowGeometry"))
 
+    @staticmethod
+    def add_shelf_icon():
+        """
+        add a shelf icon to the current shelf to open the tool window
+        """
+        make_shelf_icon("QtImgResourceBrowserInterface",
+                        os.path.join(icon_path, "qt_img_resource_browser.png"),
+                        "import qt_img_resource_browser.interface as interface\ninterface.load()",
+                        annotation="Open the Qt Image Resource Browser")
+
+    @staticmethod
+    def get_help():
+        """
+        open the projects github page
+        """
+        webbrowser.open("https://github.com/leocov-dev/maya-qt-img-resource-browser", new=2)
+
     def update_filtering(self):
         """
         update the list's filtering
         """
         self.scroll.filter_widgets(self.le_filter.text())
-        self.scroll.setFocus()
 
     def set_custom_title(self, num):
         """
@@ -120,6 +166,8 @@ class QtImgResourceBrowserInterface(MayaQWidgetBaseMixin, QtWidgets.QWidget):
         # clean up the scroll area and all its children
         self.scroll.close()
 
+        event.accept()
+
     @staticmethod
     def show_window():
         """
@@ -134,6 +182,8 @@ class QtImgResourceBrowserInterface(MayaQWidgetBaseMixin, QtWidgets.QWidget):
             _win = QtImgResourceBrowserInterface()
             _win.setWindowFlags(QtCore.Qt.Window)
             _win.show()
+
+            _win.scroll.initialize_widget_list()
 
 
 class ResourceBrowserItem(QtWidgets.QWidget):
@@ -286,7 +336,11 @@ class ResourceBrowserItem(QtWidgets.QWidget):
         """
         save the image
         """
-        self.px_image.save()
+        save_path, __ = QtWidgets.QFileDialog.getSaveFileName(parent=self,
+                                                              caption="Save Image Resource - {}".format(self.img_name),
+                                                              filter="Images (*.png)")
+        if save_path:
+            self.px_image.save(save_path, quality=100)
 
 
 class ResourceBrowserList(QtWidgets.QScrollArea):
@@ -334,9 +388,6 @@ class ResourceBrowserList(QtWidgets.QScrollArea):
         # add the container to the scroll
         self.setWidget(self.container)
 
-        # initialize the widgets
-        self.initialize_widget_list()
-
     def copy_to_clipboard(self, string):
         """
         copy the string to the system clipboard
@@ -352,21 +403,30 @@ class ResourceBrowserList(QtWidgets.QScrollArea):
         Args:
             filter_string (str): search image names for this string
         """
-        log.debug("filter_string: {}".format(filter_string))
+        # might seem easier to hide and show widgets based on the filter, but show() is very, very slow
 
-        self.filtered_widget_list = []
-
+        new_filtered_list = []
         for item in self.widget_list:
             if filter_string and filter_string.lower() not in item.img_name.lower():
-                item.setVisible(False)
                 continue
+            new_filtered_list.append(item)
 
-            self.filtered_widget_list.append(item)
-            item.setVisible(True)
+        # update the filtered list
+        if new_filtered_list != self.filtered_widget_list:
+            self.filtered_widget_list = new_filtered_list
 
-        self.return_count.emit(len(self.filtered_widget_list))
+            # remove all items from scroll
+            for i in reversed(range(self.layout.count())):
+                self.layout.removeItem(self.layout.itemAt(i))
 
-        self.update_container_size()
+            # add filtered items to layout
+            for item in self.filtered_widget_list:
+                self.layout.addWidget(item)
+
+            # emit the number of items to update the window title bar
+            self.return_count.emit(len(self.filtered_widget_list))
+
+            self.update_container_size()
 
     def add_resource_item(self, img_path, img_name, img_ext, addl_sizes):
         """
@@ -376,11 +436,15 @@ class ResourceBrowserList(QtWidgets.QScrollArea):
             img_name (str): the name of the image only
             img_ext (str): the file extension for this image
             addl_sizes (list[str]): a list of additional size suffixes
+
+        Returns:
+            ResourceBrowserItem: the item just added
         """
         item_widget = ResourceBrowserItem(img_path, img_name, img_ext, addl_sizes, parent=self)
         item_widget.copy_text.connect(self.copy_to_clipboard)
-        self.layout.addWidget(item_widget)
         self.widget_list.append(item_widget)
+
+        return item_widget
 
     def initialize_widget_list(self):
         """

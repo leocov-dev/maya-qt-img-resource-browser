@@ -3,7 +3,8 @@
         ":/characterizationtool",
         ":/webkit",
         ":/qt-project.org",
-        ":/trolltech"
+        ":/trolltech",
+        ":/SP_"
     ],
     "valid_ext": [
         ".png",
