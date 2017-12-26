@@ -18,7 +18,7 @@ px_open = QtGui.QPixmap(":/fileOpen.png")
 ![Window Screenshot](https://raw.githubusercontent.com/leocov-dev/maya-qt-img-resource-browser/master/qt_img_resource_browser/icons/qt_img_resource_browser.png)
 
 ##### Screenshot
-![Window Screenshot](https://raw.githubusercontent.com/leocov-dev/maya-qt-img-resource-browser/master/qt_img_resource_browser/screenshots/capture_01.png)
+![Window Screenshot](https://raw.githubusercontent.com/leocov-dev/maya-qt-img-resource-browser/master/screenshots/capture_01.png)
 
 ## Installation and Use
 
@@ -40,7 +40,7 @@ interface.load()
 
 ##### Details
 
-![Window Screenshot](https://raw.githubusercontent.com/leocov-dev/maya-qt-img-resource-browser/master/qt_img_resource_browser/screenshots/details_01.png)
+![Window Screenshot](https://raw.githubusercontent.com/leocov-dev/maya-qt-img-resource-browser/master/screenshots/details_01.png)
 
 1. A preview of the image
 2. The path for the image
