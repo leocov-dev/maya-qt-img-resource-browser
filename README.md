@@ -1,6 +1,7 @@
-# Maya Qt Image Resource Browser
+# Maya Qt Image Resource Browser 
+![Window Screenshot](https://raw.githubusercontent.com/leocov-dev/maya-qt-img-resource-browser/master/qt_img_resource_browser/icons/qt_img_resource_browser.png)
 
-##![Window Screenshot](https://raw.githubusercontent.com/leocov-dev/maya-qt-img-resource-browser/master/qt_img_resource_browser/icons/qt_img_resource_browser.png) Description
+## Description
 
 This Python tool for Maya will let you browse all the image resources Maya has already loaded from QResource bundles.
 
