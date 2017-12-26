@@ -1,5 +1,4 @@
-# Maya Qt Image Resource Browser 
-![Window Screenshot](https://raw.githubusercontent.com/leocov-dev/maya-qt-img-resource-browser/master/qt_img_resource_browser/icons/qt_img_resource_browser.png)
+# Maya Qt Image Resource Browser
 
 ## Description
 
@@ -14,6 +13,9 @@ This is an example of using a built in Maya icon as a QPixmap in your code:
 ```python
 px_open = QtGui.QPixmap(":/fileOpen.png")
 ```
+
+##### Shelf Icon
+![Window Screenshot](https://raw.githubusercontent.com/leocov-dev/maya-qt-img-resource-browser/master/qt_img_resource_browser/icons/qt_img_resource_browser.png)
 
 ##### Screenshot
 ![Window Screenshot](https://raw.githubusercontent.com/leocov-dev/maya-qt-img-resource-browser/master/qt_img_resource_browser/screenshots/capture_01.png)
