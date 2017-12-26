@@ -1,6 +1,6 @@
 # Maya Qt Image Resource Browser
 
-## Description ![Window Screenshot](https://raw.githubusercontent.com/leocov-dev/maya-qt-img-resource-browser/master/qt_img_resource_browser/icons/qt_img_resource_browser.png)
+##![Window Screenshot](https://raw.githubusercontent.com/leocov-dev/maya-qt-img-resource-browser/master/qt_img_resource_browser/icons/qt_img_resource_browser.png) Description
 
 This Python tool for Maya will let you browse all the image resources Maya has already loaded from QResource bundles.
 
@@ -30,7 +30,13 @@ import qt_img_resource_browser.interface as interface
 interface.load()
 ```
 
-##### UI Details
+##### UI
+
+* Add a shortcut to the shelf from the "Utils" main menu.
+* Open the Github page from the "Help" main menu.
+
+##### Details
+
 ![Window Screenshot](https://raw.githubusercontent.com/leocov-dev/maya-qt-img-resource-browser/master/qt_img_resource_browser/screenshots/details_01.png)
 
 1. A preview of the image
@@ -38,7 +44,7 @@ interface.load()
 3. The extension of the image
 4. The pixel dimensions of the image
 5. Copy the path with quotes to the clipboard
-6. Save the image file to a new path
+6. Save the image file as a .png
 
 ##### Notes    
 
@@ -49,4 +55,4 @@ This tool uses the [Qt.py](https://github.com/mottosso/Qt.py) shim to enable com
 ## Known Issues
 
 * On Maya 2018 the QProgressDialog is not rendering as expected.
-* Loading the window can be slow
+* Loading the window is slow initially due to thousands of widgets.

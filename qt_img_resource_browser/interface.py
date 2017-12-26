@@ -45,7 +45,7 @@ class QtImgResourceBrowserInterface(MayaQWidgetBaseMixin, QtWidgets.QWidget):
         self.setMinimumHeight(400)
         self.setFixedWidth(500)
         self.setWindowTitle("Qt Image Resource Browser")
-        self.setWindowIcon(QtGui.QIcon(os.path.join(icon_path, "window_icon.png")))
+        self.setWindowIcon(QtGui.QPixmap(os.path.join(icon_path, "window_icon.png"), parent=self))
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
         # ini file to store window settings
