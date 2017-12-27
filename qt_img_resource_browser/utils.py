@@ -4,7 +4,7 @@ utilities module for generic UI actions
 import os
 import platform
 import pymel.core as pm
-from vendor.Qt import QtCore, QtWidgets, QtGui
+from .vendor.Qt import QtCore, QtWidgets, QtGui
 
 
 def make_shelf_icon(name, icon_path, command_str, source_type="python", annotation=None):

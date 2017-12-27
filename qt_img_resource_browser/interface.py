@@ -12,15 +12,9 @@ import logging
 import webbrowser
 from functools import partial
 from maya.app.general.mayaMixin import MayaQWidgetBaseMixin
-from vendor.Qt import QtCore, QtWidgets, QtGui
+from .vendor.Qt import QtCore, QtWidgets, QtGui
 from app import QtImgResourceData
 from utils import progress_bar, make_shelf_icon
-
-
-try:
-    from PySide2 import QtWidgets, QtGui
-except:
-    pass
 
 
 log = logging.getLogger(__name__)
@@ -183,7 +177,7 @@ class QtImgResourceBrowserInterface(MayaQWidgetBaseMixin, QtWidgets.QWidget):
             _win.setWindowFlags(QtCore.Qt.Window)
             _win.show()
 
-            _win.scroll.initialize_widget_list()
+            QtCore.QTimer.singleShot(50, _win.scroll.initialize_widget_list)
 
 
 class ResourceBrowserItem(QtWidgets.QWidget):

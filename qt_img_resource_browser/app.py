@@ -7,7 +7,7 @@ import re
 import json
 import logging
 from collections import defaultdict
-from vendor.Qt import QtCore
+from .vendor.Qt import QtCore
 
 
 log = logging.getLogger(__name__)

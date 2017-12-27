@@ -39,6 +39,8 @@ coverage.xml
 
 # mypy
 .mypy_cache/
+
+# maya / custom
 .maya
 
 # PyCharm

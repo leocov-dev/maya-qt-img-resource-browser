@@ -1,4 +1,7 @@
 # Maya Qt Image Resource Browser
+![tested_maya_2016](https://img.shields.io/badge/maya-2016-128189.svg?style=flat)
+![tested_maya_2018](https://img.shields.io/badge/maya-2018-128189.svg?style=flat)
+![license](https://img.shields.io/badge/license-MIT-A31F34.svg?style=flat)
 
 ## Description
 
@@ -14,24 +17,29 @@ This is an example of using a built in Maya icon as a QPixmap in your code:
 px_open = QtGui.QPixmap(":/fileOpen.png")
 ```
 
-##### Shelf Icon
-![Window Screenshot](https://raw.githubusercontent.com/leocov-dev/maya-qt-img-resource-browser/master/qt_img_resource_browser/icons/qt_img_resource_browser.png)
-
 ##### Screenshot
-![Window Screenshot](https://raw.githubusercontent.com/leocov-dev/maya-qt-img-resource-browser/master/screenshots/capture_01.png)
+![Window Screenshot](.screenshots/capture_01.png)
 
 ## Installation and Use
-
 1. Place the entire directory ``qt_img_resource_browser`` in your Maya scripts directory or a directory that Maya can load Python scripts from.
+    
+    ```
+    ├- maya
+       ├- scripts
+          ├- qt_img_resource_browser
+             ├- app.py
+             ├- interface.py
+             ├- etc . . .
+    ```
+    
 2. Restart Maya.
 3. Launch the window with this python command:
 
-
-```python
-# Python
-import qt_img_resource_browser.interface as interface
-interface.load()
-```
+    ```python
+    # Python
+    import qt_img_resource_browser.interface as interface
+    interface.load()
+    ```
 
 ##### UI
 
@@ -41,7 +49,7 @@ interface.load()
 
 ##### Details
 
-![Window Screenshot](https://raw.githubusercontent.com/leocov-dev/maya-qt-img-resource-browser/master/screenshots/details_01.png)
+![Window Screenshot](.screenshots/details_01.png)
 
 1. A preview of the image
 2. The path for the image
@@ -55,6 +63,8 @@ interface.load()
 By default some paths are excluded from the list. You can edit the ``config.json`` file to modify these exclusions.
 
 This tool uses the [Qt.py](https://github.com/mottosso/Qt.py) shim to enable compatibility with PySide or PySide2.
+
+I can only test on Windows 10 at the moment. I won't be able to reproduce any issues running on another platform.
 
 ## Known Issues
 
