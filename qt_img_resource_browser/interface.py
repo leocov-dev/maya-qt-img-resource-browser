@@ -14,7 +14,7 @@ from functools import partial
 from maya.app.general.mayaMixin import MayaQWidgetBaseMixin
 from .vendor.Qt import QtCore, QtWidgets, QtGui
 from app import QtImgResourceData
-from utils import progress_bar, make_shelf_icon
+from utils import make_shelf_icon
 
 
 log = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ log.setLevel(logging.CRITICAL)
 icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icons")
 
 
-class QtImgResourceBrowserInterface(MayaQWidgetBaseMixin, QtWidgets.QWidget):
+class QtImgResourceBrowserInterface(MayaQWidgetBaseMixin, QtWidgets.QMainWindow):
     """
     Qt UI class to display the tool window
     Args:
@@ -39,7 +39,7 @@ class QtImgResourceBrowserInterface(MayaQWidgetBaseMixin, QtWidgets.QWidget):
         self.setMinimumHeight(400)
         self.setFixedWidth(500)
         self.setWindowTitle("Qt Image Resource Browser")
-        self.setWindowIcon(QtGui.QPixmap(os.path.join(icon_path, "window_icon.png"), parent=self))
+        self.setWindowIcon(QtGui.QPixmap(os.path.join(icon_path, "lc.png"), parent=self))
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
         # ini file to store window settings
@@ -59,14 +59,8 @@ class QtImgResourceBrowserInterface(MayaQWidgetBaseMixin, QtWidgets.QWidget):
         self.btn_font.setBold(True)
         self.btn_font.setPointSize(9)
 
-        # main layout
-        self.layout = QtWidgets.QVBoxLayout(self)
-        self.layout.setContentsMargins(5, 5, 5, 5)
-        self.setLayout(self.layout)
-
         # main menu
-        self.menu_bar = QtWidgets.QMenuBar(self)
-        self.layout.addWidget(self.menu_bar)
+        self.menu_bar = self.menuBar()
 
         # utils menu
         self.utils_menu = QtWidgets.QMenu("Utils", self.menu_bar)
@@ -86,9 +80,64 @@ class QtImgResourceBrowserInterface(MayaQWidgetBaseMixin, QtWidgets.QWidget):
                                                 triggered=self.get_help)
         self.help_menu.addAction(self.add_shelf_icon)
 
+        # main widget and layout
+        self.container = QtWidgets.QWidget(parent=self)
+        self.setCentralWidget(self.container)
+        self.layout = QtWidgets.QVBoxLayout(self)
+        self.layout.setContentsMargins(5, 5, 5, 5)
+        self.container.setLayout(self.layout)
+
         # UI items
+        # ------------------------------------------
+
+        # stack
+        self.stack = QtWidgets.QStackedLayout(self)
+        self.stack.setStackingMode(QtWidgets.QStackedLayout.StackAll)
+
+        # progress bar
+        self.progress_container = QtWidgets.QWidget(parent=self)
+        self.progress_container.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents)
+        self.progress_container.setFixedSize(QtCore.QSize(self.width(), self.width()))
+        self.stack.addWidget(self.progress_container)
+
+        progress_layout = QtWidgets.QVBoxLayout(self)
+        progress_layout.setContentsMargins(5, 0, 5, 0)
+        progress_layout.setSpacing(8)
+
+        progress_spacer = QtWidgets.QSpacerItem(50, 20)
+        progress_layout.addItem(progress_spacer)
+
+        self.progress_container.setLayout(progress_layout)
+        self.progress = QtWidgets.QProgressBar(self)
+        self.progress.setFixedHeight(35)
+        self.progress.setFont(self.btn_font)
+        progress_layout.addWidget(self.progress)
+
+        progress_label = QtWidgets.QLabel("Updating - Please Wait", parent=self)
+        progress_label.setFont(self.bold_font)
+        progress_label.setAlignment(QtCore.Qt.AlignCenter)
+        progress_label.setFixedHeight(64)
+        progress_label.setStyleSheet("""
+                                     background-color: qlineargradient(x1: 0,
+                                                                       y1: 0,
+                                                                       x2: 1,
+                                                                       y2: 0,
+                                                                       stop: 0.01 rgb(0, 0, 0, 0),
+                                                                       stop: 0.2 rgb({0}, {0}, {0}, 255),
+                                                                       stop: 0.8  rgb({0}, {0}, {0}, 255),
+                                                                       stop: 0.99 rgb(0, 0, 0, 0) );
+                                     """.format(42))
+        progress_layout.addWidget(progress_label)
+
+        progress_layout.addStretch()
+
+        # scroll area
         self.scroll = ResourceBrowserList(self.data_list, parent=self)
         self.scroll.return_count.connect(self.set_custom_title)
+        self.scroll.start_progress.connect(self.init_progress)
+        self.scroll.update_progress.connect(self.update_progress)
+        self.scroll.end_progress.connect(self.end_progress)
+        self.stack.addWidget(self.scroll)
 
         # A filtering bar
         filter_bar_height = 28
@@ -135,6 +184,32 @@ class QtImgResourceBrowserInterface(MayaQWidgetBaseMixin, QtWidgets.QWidget):
         open the projects github page
         """
         webbrowser.open("https://github.com/leocov-dev/maya-qt-img-resource-browser", new=2)
+
+    def init_progress(self, max_value):
+        """
+        show and start the progress bar
+
+        Args:
+            max_value (int): the maximum value for the progress bar
+        """
+        self.progress_container.show()
+        self.progress.setMaximum(max_value)
+
+    def update_progress(self, value):
+        """
+        update the progress bar's value
+
+        Args:
+            value (int): the current value for the progress bar
+        """
+        self.progress.setValue(value)
+
+    def end_progress(self):
+        """
+        reset and hide the progress bar
+        """
+        self.progress.reset()
+        self.progress_container.hide()
 
     def update_filtering(self):
         """
@@ -312,14 +387,6 @@ class ResourceBrowserItem(QtWidgets.QWidget):
         self.btn_save.clicked.connect(self.save_image)
         self.ly_clip.addWidget(self.btn_save)
 
-        # additional sizes dropdown
-        # todo: is this useful? or should these alt sizes be used only for dpi changes?
-        # if len(self.addl_sizes) > 1:
-        #     self.cb_size = QtWidgets.QComboBox(parent=self)
-        #     self.cb_size.setFixedWidth(80)
-        #     self.cb_size.addItems(sorted(self.addl_sizes))
-        #     self.ly_clip.addWidget(self.cb_size)
-
     def emit_path(self):
         """
         emit path string
@@ -345,8 +412,12 @@ class ResourceBrowserList(QtWidgets.QScrollArea):
         parent (QtWidgets.QWidget): the parent for this object, it is not required but should always have one
     """
 
-    return_count = QtCore.Signal(int)
     clipboard = QtWidgets.QApplication.clipboard()
+
+    return_count = QtCore.Signal(int)
+    start_progress = QtCore.Signal(int)
+    update_progress = QtCore.Signal(int)
+    end_progress = QtCore.Signal()
 
     def __init__(self, data_list, parent=None):
         super(ResourceBrowserList, self).__init__(parent=parent)
@@ -405,22 +476,31 @@ class ResourceBrowserList(QtWidgets.QScrollArea):
                 continue
             new_filtered_list.append(item)
 
+        if new_filtered_list == self.filtered_widget_list:
+            return
+
         # update the filtered list
-        if new_filtered_list != self.filtered_widget_list:
-            self.filtered_widget_list = new_filtered_list
+        self.filtered_widget_list = new_filtered_list
 
-            # remove all items from scroll
-            for i in reversed(range(self.layout.count())):
-                self.layout.removeItem(self.layout.itemAt(i))
+        num = len(self.filtered_widget_list)
+        if num > 200:
+            self.start_progress.emit(num)
 
-            # add filtered items to layout
-            for item in self.filtered_widget_list:
-                self.layout.addWidget(item)
+        # remove all items from scroll
+        for i in reversed(range(self.layout.count())):
+            self.layout.removeItem(self.layout.itemAt(i))
 
-            # emit the number of items to update the window title bar
-            self.return_count.emit(len(self.filtered_widget_list))
+        # add filtered items to layout
+        for i, item in enumerate(self.filtered_widget_list):
+            self.layout.addWidget(item)
+            self.update_progress.emit(i)
 
-            self.update_container_size()
+        # emit the number of items to update the window title bar
+        self.return_count.emit(len(self.filtered_widget_list))
+
+        self.update_container_size()
+
+        self.end_progress.emit()
 
     def add_resource_item(self, img_path, img_name, img_ext, addl_sizes):
         """
@@ -447,11 +527,7 @@ class ResourceBrowserList(QtWidgets.QScrollArea):
         if not self.data_list:
             return
 
-        num = len(self.data_list)
-
-        log.debug("initializing num: {}".format(num))
-
-        progress = progress_bar("Loading Images", num)
+        self.start_progress.emit(len(self.data_list))
 
         for i, list_item in enumerate(self.data_list):
             name, data = list_item
@@ -460,9 +536,9 @@ class ResourceBrowserList(QtWidgets.QScrollArea):
             img_ext = data["img_ext"]
             addl_sizes = data["addl_sizes"]
             self.add_resource_item(img_path, img_name, img_ext, addl_sizes)
-            progress.setValue(i)
+            self.update_progress.emit(i)
 
-        progress.reset()
+        self.end_progress.emit()
 
         self.filter_widgets("")
 
@@ -475,9 +551,9 @@ class ResourceBrowserList(QtWidgets.QScrollArea):
         self.container.setFixedHeight(new_height)
 
         parent_width = self.parent().width()
-        parent_margins = self.parent().layout.contentsMargins()
+        # parent_margins = self.parent().centralWidget().layout.contentsMargins()
         scroll_bar_width = 26
-        self.container.setFixedWidth(parent_width - parent_margins.right() - parent_margins.left() - scroll_bar_width)
+        self.container.setFixedWidth(parent_width - scroll_bar_width)
 
         log.debug("Update Size")
 

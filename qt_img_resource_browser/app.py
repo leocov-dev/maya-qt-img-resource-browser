@@ -44,10 +44,12 @@ class QtImgResourceData(object):
                                               "img_ext": "",
                                               "addl_sizes": []})
 
+        # default configuration if json can't load
         self.config = {"path_exclusions": [],
                        "valid_ext": [
                             ".png",
                             ".svg"]}
+
         if os.path.exists(self.config_json):
             with open(self.config_json) as config_data:
                 self.config = json.load(config_data)
