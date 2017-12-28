@@ -21,7 +21,7 @@ px_open = QtGui.QPixmap(":/fileOpen.png")
 ![Window Screenshot](.screenshots/capture_01.png)
 
 ## Installation and Use
-1. Place the entire directory ``qt_img_resource_browser`` in your Maya scripts directory or a directory that Maya can load Python scripts from.
+1. Place the entire directory `qt_img_resource_browser` in your Maya scripts directory or a directory that Maya can load Python scripts from.
     
     ```
     ├- maya
@@ -60,13 +60,14 @@ px_open = QtGui.QPixmap(":/fileOpen.png")
 
 ##### Notes    
 
-By default some paths are excluded from the list. You can edit the ``config.json`` file to modify these exclusions.
+By default some paths are excluded from the list. You can edit the `config.json` file to modify these exclusions.
 
 This tool uses the [Qt.py](https://github.com/mottosso/Qt.py) shim to enable compatibility with PySide or PySide2.
 
 I can only test on Windows 10 at the moment. I won't be able to reproduce any issues running on another platform.
 
+Please note that some images included in later versions of Maya may not be present in earlier versions.
+
 ## Known Issues
 
-* On Maya 2018 the QProgressDialog is not rendering as expected.
 * Loading the window is slow initially due to thousands of widgets.
