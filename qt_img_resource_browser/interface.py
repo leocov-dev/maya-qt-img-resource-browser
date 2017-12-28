@@ -75,10 +75,15 @@ class QtImgResourceBrowserInterface(MayaQWidgetBaseMixin, QtWidgets.QMainWindow)
         self.help_menu = QtWidgets.QMenu("Help", self.menu_bar)
         self.menu_bar.addMenu(self.help_menu)
 
-        self.add_shelf_icon = QtWidgets.QAction("Help / Info",
+        self.open_repo_page = QtWidgets.QAction("About",
                                                 self.help_menu,
-                                                triggered=self.get_help)
-        self.help_menu.addAction(self.add_shelf_icon)
+                                                triggered=self.get_about)
+        self.help_menu.addAction(self.open_repo_page)
+
+        self.open_issue_page = QtWidgets.QAction("Get Help",
+                                                 self.help_menu,
+                                                 triggered=self.get_help)
+        self.help_menu.addAction(self.open_issue_page)
 
         # main widget and layout
         self.container = QtWidgets.QWidget(parent=self)
@@ -179,11 +184,18 @@ class QtImgResourceBrowserInterface(MayaQWidgetBaseMixin, QtWidgets.QMainWindow)
                         annotation="Open the Qt Image Resource Browser")
 
     @staticmethod
+    def get_about():
+        """
+        open the projects github page
+        """
+        webbrowser.open("https://github.com/leocov-dev/maya-qt-img-resource-browser#maya-qt-image-resource-browser", new=2)
+
+    @staticmethod
     def get_help():
         """
         open the projects github page
         """
-        webbrowser.open("https://github.com/leocov-dev/maya-qt-img-resource-browser", new=2)
+        webbrowser.open("https://github.com/leocov-dev/maya-qt-img-resource-browser/issues", new=2)
 
     def init_progress(self, max_value):
         """
