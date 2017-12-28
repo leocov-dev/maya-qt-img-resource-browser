@@ -1,6 +1,4 @@
-# Issue Checklist
-
-If you are experiencing issues with the tool please follow this guide to provide helpful information that can be used to assist you.
+Please follow this template to provide helpful information that can be used to assist you.
 
 ## Self Help Checklist
 
