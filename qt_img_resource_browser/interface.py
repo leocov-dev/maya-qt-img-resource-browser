@@ -12,14 +12,17 @@ import logging
 import webbrowser
 from functools import partial
 from maya.app.general.mayaMixin import MayaQWidgetBaseMixin
-from .vendor.Qt import QtCore, QtWidgets, QtGui
+
+try:
+    from PySide2 import QtCore, QtWidgets, QtGui
+except ImportError:
+    from vendor.Qt import QtCore, QtWidgets, QtGui
+
 from app import QtImgResourceData
 from utils import make_shelf_icon
 
-
 log = logging.getLogger(__name__)
 log.setLevel(logging.CRITICAL)
-
 
 icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icons")
 
@@ -128,10 +131,10 @@ class QtImgResourceBrowserInterface(MayaQWidgetBaseMixin, QtWidgets.QMainWindow)
                                                                        x2: 1,
                                                                        y2: 0,
                                                                        stop: 0.01 rgb(0, 0, 0, 0),
-                                                                       stop: 0.2 rgb({0}, {0}, {0}, 255),
-                                                                       stop: 0.8  rgb({0}, {0}, {0}, 255),
+                                                                       stop: 0.2 rgb({v}, {v}, {v}, 255),
+                                                                       stop: 0.8  rgb({v}, {v}, {v}, 255),
                                                                        stop: 0.99 rgb(0, 0, 0, 0) );
-                                     """.format(42))
+                                     """.format(v=42))
         progress_layout.addWidget(progress_label)
 
         progress_layout.addStretch()
@@ -188,7 +191,8 @@ class QtImgResourceBrowserInterface(MayaQWidgetBaseMixin, QtWidgets.QMainWindow)
         """
         open the projects github page
         """
-        webbrowser.open("https://github.com/leocov-dev/maya-qt-img-resource-browser#maya-qt-image-resource-browser", new=2)
+        webbrowser.open("https://github.com/leocov-dev/maya-qt-img-resource-browser#maya-qt-image-resource-browser",
+                        new=2)
 
     @staticmethod
     def get_help():
@@ -248,23 +252,6 @@ class QtImgResourceBrowserInterface(MayaQWidgetBaseMixin, QtWidgets.QMainWindow)
         self.scroll.close()
 
         event.accept()
-
-    @staticmethod
-    def show_window():
-        """
-        Static method for creating the UI window and closing an existing instance
-        """
-        global _win
-        try:
-            _win.close()
-        except:
-            pass
-        finally:
-            _win = QtImgResourceBrowserInterface()
-            _win.setWindowFlags(QtCore.Qt.Window)
-            _win.show()
-
-            QtCore.QTimer.singleShot(50, _win.scroll.initialize_widget_list)
 
 
 class ResourceBrowserItem(QtWidgets.QWidget):
@@ -330,8 +317,8 @@ class ResourceBrowserItem(QtWidgets.QWidget):
         # combine pixmaps with a painter
         painter = QtGui.QPainter()
         painter.begin(px_checker)
-        painter.drawPixmap((px_checker.width()-px_preview.width())/2,
-                           (px_checker.height()-px_preview.height())/2,
+        painter.drawPixmap((px_checker.width() - px_preview.width()) / 2,
+                           (px_checker.height() - px_preview.height()) / 2,
                            px_preview)
         painter.end()
 
@@ -421,7 +408,7 @@ class ResourceBrowserList(QtWidgets.QScrollArea):
     a scroll area containing a list of qt image resources
     Args:
         data_list (list): a list of image resource tuples, a name and a dictionary of data
-        parent (QtWidgets.QWidget): the parent for this object, it is not required but should always have one
+        parent (QtWidgets.QWidget): the parent for this object
     """
 
     clipboard = QtWidgets.QApplication.clipboard()
@@ -589,4 +576,14 @@ def load():
     """
     entry point for the UI, launch an instance of the tool with this method
     """
-    QtImgResourceBrowserInterface.show_window()
+    global _win
+    try:
+        _win.close()
+    except (NameError, RuntimeError):
+        pass
+    finally:
+        _win = QtImgResourceBrowserInterface()
+        _win.setWindowFlags(QtCore.Qt.Window)
+        _win.show()
+
+        QtCore.QTimer.singleShot(50, _win.scroll.initialize_widget_list)

@@ -58,7 +58,7 @@ px_open = QtGui.QPixmap(":/fileOpen.png")
 5. Copy the path with quotes to the clipboard
 6. Save the image file as a .png
 
-##### Notes    
+##### Notes
 
 By default some paths are excluded from the list. You can edit the `config.json` file to modify these exclusions.
 

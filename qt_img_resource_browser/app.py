@@ -6,12 +6,23 @@ import os
 import re
 import json
 import logging
-from collections import defaultdict
-from .vendor.Qt import QtCore
+from collections import defaultdict, OrderedDict
+
+try:
+    from PySide2 import QtCore
+except ImportError:
+    from .vendor.Qt import QtCore
 
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.CRITICAL)
+
+
+class OrderedDefaultDict(OrderedDict, defaultdict):
+    def __init__(self, default_factory=None, *args, **kwargs):
+        # in python3 you can omit the args to super
+        super(OrderedDefaultDict, self).__init__(*args, **kwargs)
+        self.default_factory = default_factory
 
 
 class QtImgResourceData(object):
@@ -39,10 +50,10 @@ class QtImgResourceData(object):
     config_json = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
 
     def __init__(self):
-        self.data_dict = defaultdict(lambda: {"img_path": "",
-                                              "img_name": "",
-                                              "img_ext": "",
-                                              "addl_sizes": []})
+        self.data_dict = OrderedDefaultDict(lambda: {"img_path": "",
+                                                     # "img_name": "",
+                                                     "img_ext": "",
+                                                     "addl_sizes": []})
 
         # default configuration if json can't load
         self.config = {"path_exclusions": [],
@@ -58,7 +69,7 @@ class QtImgResourceData(object):
 
     def _generator_find_images(self, valid_ext_list=None):
         """
-        Iterate over the ":" path, in Qt this is the loaded resources path
+        Iterate over the ":" path.  In Qt this is the loaded resources path
         when an item is found that matches the ``valid_ext_list`` it is yielded
 
         Notes:
@@ -98,8 +109,8 @@ class QtImgResourceData(object):
 
         Args:
             valid_ext_list (list[str]): a list of valid extension strings provided to the generator,
-            must start with a "." as in ".png".
-            this is an optional argument, if no list is provided, the default list is [".png", ".svg"]
+                must start with a "." as in ".png".
+                this is an optional argument, if no list is provided, the default list is [".png", ".svg"]
         """
 
         for img_path in self._generator_find_images(valid_ext_list):
@@ -108,7 +119,7 @@ class QtImgResourceData(object):
 
             img_sizes = []
 
-            # match ending in -000 or _000
+            # match ending of -000 or _000
             search_string, __ = os.path.splitext(img_path)
             match_list = re.split("([_-]\d+$)", search_string)
             if len(match_list) > 1:
@@ -116,21 +127,22 @@ class QtImgResourceData(object):
                 img_name, img_ext = os.path.splitext(os.path.basename(img_path))
                 self.data_dict[img_name]["addl_sizes"].append(match_list[1])
                 self.data_dict[img_name]["img_path"] = img_path
-                self.data_dict[img_name]["img_name"] = img_name
+                # self.data_dict[img_name]["img_name"] = img_name
                 self.data_dict[img_name]["img_ext"] = img_ext
                 img_sizes.append(match_list[1])
             else:
                 self.data_dict[img_name]["addl_sizes"].append("")  # if no number suffix, add empty string
                 self.data_dict[img_name]["img_path"] = img_path
-                self.data_dict[img_name]["img_name"] = img_name
+                # self.data_dict[img_name]["img_name"] = img_name
                 self.data_dict[img_name]["img_ext"] = img_ext
 
         log.debug("dict len: {}".format(len(self.data_dict)))
-        for key, value in self.data_dict.items():
-            log.debug("{}: {}\n"
-                      "    {}\n"
-                      "    {}\n"
-                      "    {}".format(key, value["img_name"], value["img_ext"], value["img_path"], value["addl_sizes"]))
+        if log.level == logging.DEBUG:
+            for key, value in self.data_dict.items():
+                key_len = len(key)+2
+                print("{}: {}".format(key, value["img_ext"]))
+                print("{0:>{t}}".format(value["img_path"], t=key_len))
+                # print("{0:>{tab}}".format(value["addl_sizes"], tab=len(key)+2))
 
     def dict_as_sorted_list(self, by_path=False, by_name=False):
         """

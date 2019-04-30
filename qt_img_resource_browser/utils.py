@@ -17,8 +17,9 @@ def make_shelf_icon(name, icon_path, command_str, source_type="python", annotati
         annotation (str): the tool-tip annotation to display on hovering over this shelf item
 
     Returns:
-        pm.uitypes.ShelfButton: returns the button just created
+        returns the button just created
     """
+    # type: (str, str, str, str, str) -> pm.uitypes.ShelfButton
     icon_path = os.path.normpath(icon_path)
 
     # Maya requires all paths to be forward slash for internal use
